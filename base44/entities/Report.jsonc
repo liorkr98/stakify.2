@@ -1,0 +1,86 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Report title"
+    },
+    "content_blocks": {
+      "type": "array",
+      "description": "Array of content blocks (text, chart, etc.)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "heading",
+              "text",
+              "bullets",
+              "chart"
+            ]
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "tickers": {
+      "type": "array",
+      "description": "Tickers mentioned in the report",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_avatar": {
+      "type": "string"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0
+    },
+    "prediction_action": {
+      "type": "string",
+      "enum": [
+        "Long",
+        "Short",
+        "Hold"
+      ]
+    },
+    "prediction_ticker": {
+      "type": "string"
+    },
+    "prediction_target_price": {
+      "type": "number"
+    },
+    "prediction_timeframe": {
+      "type": "string"
+    },
+    "prediction_locked": {
+      "type": "boolean",
+      "default": false
+    },
+    "prediction_lock_price": {
+      "type": "number"
+    },
+    "prediction_lock_time": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}
