@@ -1,16 +1,19 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle } from "lucide-react";
+import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle, Rocket, PenLine } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import EditorBlock from "@/components/editor/EditorBlock";
 import ChartBlock from "@/components/editor/ChartBlock";
+import DrawableChartBlock from "@/components/editor/DrawableChartBlock";
 import ImageBlock from "@/components/editor/ImageBlock";
 import PredictionBlock from "@/components/editor/PredictionBlock";
 import AISidebar from "@/components/editor/AISidebar";
 import MonetizationPanel from "@/components/editor/MonetizationPanel";
 import FactChecker from "@/components/report/FactChecker";
+import AIChat from "@/components/editor/AIChat";
+import BoostPanel from "@/components/editor/BoostPanel";
 
 const DYOR_TEXT = "⚠️ Disclaimer: This report is for informational purposes only and does not constitute financial advice. Always do your own research (DYOR) before making any investment decisions.";
 
@@ -59,6 +62,7 @@ export default function ReportEditor() {
           <div className="space-y-1 mb-6">
             {blocks.map((block, index) =>
               block.type === "chart" ? <ChartBlock key={block.id} /> :
+              block.type === "drawchart" ? <DrawableChartBlock key={block.id} /> :
               block.type === "image" ? <ImageBlock key={block.id} block={block} onDelete={() => handleBlockDelete(index)} /> :
               <EditorBlock key={block.id} block={block} index={index} onChange={handleBlockChange} onDelete={handleBlockDelete} onKeyDown={handleBlockKeyDown} />
             )}
@@ -75,6 +79,7 @@ export default function ReportEditor() {
               <DropdownMenuItem onClick={() => addBlock("quote")}><Quote className="w-4 h-4 mr-2" />Quote</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => addBlock("chart")}><BarChart3 className="w-4 h-4 mr-2" />Stock Chart</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => addBlock("drawchart")}><PenLine className="w-4 h-4 mr-2" />Chart + Draw</DropdownMenuItem>
               <DropdownMenuItem onClick={() => addBlock("image")}><Image className="w-4 h-4 mr-2" />Image</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -85,16 +90,22 @@ export default function ReportEditor() {
 
         <aside className="hidden lg:block w-72 shrink-0 space-y-4">
           <MonetizationPanel />
+          <BoostPanel />
           <div className="bg-card border border-border rounded-xl p-4 text-xs text-muted-foreground space-y-1.5">
             <p className="font-semibold text-foreground text-sm mb-2">Tips</p>
             <p>• Use $TICKER notation to reference stocks</p>
             <p>• Add a DYOR disclaimer before publishing</p>
             <p>• Lock a prediction to build credibility</p>
-            <p>• Monetize with a premium price or subscription</p>
+            <p>• Draw on Chart+Draw blocks to annotate</p>
+            <p>• Chat with the AI assistant for research help</p>
           </div>
         </aside>
       </div>
       <AISidebar isOpen={showAI} onClose={() => setShowAI(false)} onGenerate={handleAIGenerate} />
+      <AIChat
+        reportContent={[title, ...blocks.map(b => b.content)].filter(Boolean).join("\n\n")}
+        onInsertBlock={(text) => { addBlock("text"); setBlocks(prev => { const n = [...prev]; n[n.length-1] = { ...n[n.length-1], content: text }; return n; }); toast.success("Block inserted!"); }}
+      />
     </div>
   );
 }

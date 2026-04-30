@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Award, FileText, Star, Flame, Trophy, Users, Zap, ArrowUp, ArrowDown, Minus, BookOpen, Rocket, Shield, CheckCircle, Clock, BarChart3, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
-import InsightsPanel from "@/components/dashboard/InsightsPanel";
+import RevenueInsightsPanel from "@/components/dashboard/RevenueInsightsPanel";
 import TwitsPanel from "@/components/dashboard/TwitsPanel";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -28,12 +28,18 @@ const ACHIEVEMENTS = [
   { label: "90%+ Accuracy", icon: Shield, earned: false }, { label: "Streak x10", icon: Rocket, earned: false },
 ];
 
+const BOOST_REPORTS = [
+  { id: "r1", title: "NVIDIA: The AI Backbone Play for 2026", boosted: false },
+  { id: "r6", title: "AMD vs NVIDIA: The Underdog Catches Up", boosted: true },
+];
+
 export default function AnalystDashboard() {
   const [tab, setTab] = useState("published");
+  const [boosts, setBoosts] = useState({ r6: true });
   const navigate = useNavigate();
   const saved = (() => { try { return JSON.parse(localStorage.getItem("stakify_profile")) || {}; } catch { return {}; } })();
   const analyst = { ...MOCK_ANALYSTS[0], ...saved };
-  const myReports = MOCK_REPORTS.filter((r) => r.author.id === analyst.id);
+  const myReports = MOCK_REPORTS.filter(r => r.author.id === analyst.id);
   const drafts = [{ id: "d1", title: "Amazon's Healthcare Pivot: Underappreciated Opportunity", updatedAt: "2026-04-14" }, { id: "d2", title: "Semiconductor Supply Chain Deep Dive", updatedAt: "2026-04-13" }];
 
   return (
@@ -48,12 +54,15 @@ export default function AnalystDashboard() {
             <span>{analyst.reports} Reports</span><span>{analyst.followers.toLocaleString()} Followers</span><span>Joined Jan 2025</span>
           </div>
         </div>
-        <Link to="/edit-profile"><Button variant="outline" size="sm">Edit Profile</Button></Link>
+        <div className="flex gap-2">
+          <Link to="/editor"><Button size="sm" className="bg-primary">+ Write Report</Button></Link>
+          <Link to="/edit-profile"><Button variant="outline" size="sm">Edit Profile</Button></Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {STAT_CARDS.map((stat) => {
+        {STAT_CARDS.map(stat => {
           const Icon = stat.icon;
           return (
             <button key={stat.key} onClick={() => navigate(stat.key === "predictions" ? "/predictions" : `/analytics?category=${stat.key}`)} className={`rounded-xl border p-4 text-left hover:shadow-md transition-all ${stat.bg}`}>
@@ -68,13 +77,13 @@ export default function AnalystDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <InsightsPanel />
+          <RevenueInsightsPanel />
 
           {/* Achievements */}
           <div className="bg-card border border-border rounded-xl p-5">
             <h2 className="font-bold mb-3">Achievements <span className="text-xs text-muted-foreground font-normal">{ACHIEVEMENTS.filter(a => a.earned).length}/{ACHIEVEMENTS.length} earned</span></h2>
             <div className="flex flex-wrap gap-2">
-              {ACHIEVEMENTS.map((a) => {
+              {ACHIEVEMENTS.map(a => {
                 const Icon = a.icon;
                 return (
                   <div key={a.label} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs ${a.earned ? "bg-primary/5 border-primary/20 text-primary" : "bg-secondary border-border text-muted-foreground opacity-50"}`}>
@@ -88,11 +97,16 @@ export default function AnalystDashboard() {
           {/* Reports Tabs */}
           <div className="bg-card border border-border rounded-xl p-5">
             <Tabs value={tab} onValueChange={setTab}>
-              <TabsList className="mb-4"><TabsTrigger value="published">Published ({myReports.length})</TabsTrigger><TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger><TabsTrigger value="subscriptions">Subscribed</TabsTrigger></TabsList>
+              <TabsList className="mb-4">
+                <TabsTrigger value="published">Published ({myReports.length})</TabsTrigger>
+                <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
+                <TabsTrigger value="boost">Boost</TabsTrigger>
+                <TabsTrigger value="subscriptions">Subscribed</TabsTrigger>
+              </TabsList>
             </Tabs>
             {tab === "published" && (
               <div className="space-y-3">
-                {myReports.map((report) => (
+                {myReports.map(report => (
                   <div key={report.id} className="flex items-center gap-3 p-3 border border-border rounded-lg hover:bg-secondary/30 cursor-pointer" onClick={() => navigate(`/report?id=${report.id}`)}>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-sm truncate">{report.title}</div>
@@ -105,7 +119,7 @@ export default function AnalystDashboard() {
             )}
             {tab === "drafts" && (
               <div className="space-y-3">
-                {drafts.map((draft) => (
+                {drafts.map(draft => (
                   <div key={draft.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
                     <div className="flex-1 min-w-0"><div className="font-semibold text-sm truncate">{draft.title}</div><div className="text-xs text-muted-foreground">Last edited {format(new Date(draft.updatedAt), "MMM d, yyyy")}</div></div>
                     <Badge variant="secondary">Draft</Badge>
@@ -113,9 +127,29 @@ export default function AnalystDashboard() {
                 ))}
               </div>
             )}
+            {tab === "boost" && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground mb-2">Boost a report to increase its reach across the platform.</p>
+                {myReports.map(report => (
+                  <div key={report.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm truncate">{report.title}</div>
+                      <div className="text-xs text-muted-foreground">{report.likes} likes</div>
+                    </div>
+                    {boosts[report.id] ? (
+                      <span className="text-xs text-orange-600 font-semibold flex items-center gap-1"><Rocket className="w-3.5 h-3.5" />Boosted</span>
+                    ) : (
+                      <Button size="sm" variant="outline" className="text-xs border-orange-300 text-orange-600 hover:bg-orange-50" onClick={e => { e.stopPropagation(); setBoosts(prev => ({ ...prev, [report.id]: true })); }}>
+                        <Rocket className="w-3.5 h-3.5 mr-1" />Boost
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             {tab === "subscriptions" && (
               <div className="space-y-3">
-                {MOCK_ANALYSTS.slice(1, 4).map((a) => (
+                {MOCK_ANALYSTS.slice(1, 4).map(a => (
                   <div key={a.id} className="flex items-center gap-3">
                     <img src={a.avatar} alt={a.name} className="w-9 h-9 rounded-full object-cover" />
                     <div className="flex-1"><div className="font-semibold text-sm">{a.name}</div><div className="text-xs text-muted-foreground">{a.followers.toLocaleString()} followers · {a.accuracy}%</div></div>
