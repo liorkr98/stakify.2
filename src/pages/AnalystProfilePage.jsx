@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, UserPlus, MessageCircle, BarChart3, FileText, Star, Target, Award, Users, Flame, Trophy, TrendingUp, Eye, DollarSign, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,8 @@ export default function AnalystProfilePage() {
   };
 
   const hasDM = subscriptionPlan?.dm;
+  const [showAccModal, setShowAccModal] = useState(false);
+  const [showYieldModal, setShowYieldModal] = useState(false);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -82,17 +84,17 @@ export default function AnalystProfilePage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Accuracy", value: `${analyst.accuracy}%`, icon: BarChart3, color: "text-primary" },
-              { label: "Yearly Yield", value: `+${analyst.yearlyYield}%`, icon: TrendingUp, color: "text-amber-500" },
-              { label: "Followers", value: analyst.followers.toLocaleString(), icon: UserPlus, color: "text-blue-500" },
-              { label: "Reports", value: analyst.reports, icon: FileText, color: "text-muted-foreground" },
+              { label: "Accuracy", value: `${analyst.accuracy}%`, icon: BarChart3, color: "text-primary", onClick: () => setShowAccModal(true) },
+              { label: "Yearly Yield", value: `+${analyst.yearlyYield}%`, icon: TrendingUp, color: "text-amber-500", onClick: () => setShowYieldModal(true) },
+              { label: "Followers", value: analyst.followers.toLocaleString(), icon: UserPlus, color: "text-blue-500", onClick: null },
+              { label: "Reports", value: analyst.reports, icon: FileText, color: "text-muted-foreground", onClick: null },
             ].map(stat => {
               const Icon = stat.icon;
               return (
-                <div key={stat.label} className="bg-secondary/50 border border-border rounded-xl p-3 text-center">
+                <div key={stat.label} onClick={stat.onClick} className={`bg-secondary/50 border border-border rounded-xl p-3 text-center ${stat.onClick ? "cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all" : ""}`}>
                   <Icon className={`w-4 h-4 mx-auto mb-1 ${stat.color}`} />
                   <div className={`text-lg font-bold ${stat.color}`}>{stat.value}</div>
-                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                  <div className="text-xs text-muted-foreground">{stat.label}{stat.onClick ? " ↗" : ""}</div>
                 </div>
               );
             })}
@@ -156,6 +158,62 @@ export default function AnalystProfilePage() {
 
       <h2 className="font-bold mb-4">Published Reports</h2>
       {myReports.length === 0 ? <p className="text-sm text-muted-foreground">No reports yet.</p> : <div className="space-y-3">{myReports.map(r => <ReportCard key={r.id} report={r} />)}</div>}
+
+      {/* Accuracy Modal */}
+      {showAccModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowAccModal(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-lg mb-1">Prediction Accuracy</h3>
+            <p className="text-3xl font-bold text-primary mb-4">{analyst.accuracy}%</p>
+            <div className="space-y-2 mb-4">
+              {[
+                { label: "Long predictions hit", pct: 89, color: "bg-gain" },
+                { label: "Short predictions hit", pct: 84, color: "bg-loss" },
+                { label: "Hold predictions correct", pct: 78, color: "bg-amber-400" },
+              ].map(row => (
+                <div key={row.label}>
+                  <div className="flex justify-between text-xs mb-1"><span className="text-muted-foreground">{row.label}</span><span className="font-semibold">{row.pct}%</span></div>
+                  <div className="h-1.5 bg-secondary rounded-full"><div className={`h-1.5 rounded-full ${row.color}`} style={{ width: `${row.pct}%` }} /></div>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center mb-4">
+              {[{ label: "Total", v: "82" }, { label: "Hit", v: "72" }, { label: "Miss", v: "10" }].map(s => (
+                <div key={s.label} className="bg-secondary/60 rounded-lg p-2">
+                  <div className="font-bold text-sm">{s.v}</div>
+                  <div className="text-xs text-muted-foreground">{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setShowAccModal(false)} className="w-full text-sm text-muted-foreground hover:text-foreground">Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Yield Modal */}
+      {showYieldModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowYieldModal(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-sm shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-lg mb-1">Yearly Yield Breakdown</h3>
+            <p className="text-3xl font-bold text-amber-500 mb-1">+{analyst.yearlyYield}%</p>
+            <p className="text-xs text-muted-foreground mb-4">vs S&P 500: +12.1% · Alpha: +{(analyst.yearlyYield - 12.1).toFixed(1)}%</p>
+            <div className="space-y-2 mb-4">
+              {[
+                { q: "Q1 2025", yield: "+8.2%", color: "text-gain" },
+                { q: "Q2 2025", yield: "+6.7%", color: "text-gain" },
+                { q: "Q3 2025", yield: "+11.4%", color: "text-gain" },
+                { q: "Q4 2025", yield: "+4.9%", color: "text-gain" },
+              ].map(row => (
+                <div key={row.q} className="flex justify-between text-sm border-b border-border pb-1">
+                  <span className="text-muted-foreground">{row.q}</span>
+                  <span className={`font-semibold ${row.color}`}>{row.yield}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setShowYieldModal(false)} className="w-full text-sm text-muted-foreground hover:text-foreground">Close</button>
+          </div>
+        </div>
+      )}
 
       {/* Subscription modal */}
       {showSubModal && (

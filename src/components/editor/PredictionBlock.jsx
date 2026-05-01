@@ -58,7 +58,16 @@ export default function PredictionBlock({ onPublish }) {
               <label className="text-xs text-muted-foreground mb-1 block">Timeframe</label>
               <Select value={timeframe} onValueChange={setTimeframe}>
                 <SelectTrigger className="h-9"><SelectValue placeholder="Select..." /></SelectTrigger>
-                <SelectContent><SelectItem value="1 month">1 Month</SelectItem><SelectItem value="3 months">3 Months</SelectItem><SelectItem value="6 months">6 Months</SelectItem><SelectItem value="12 months">12 Months</SelectItem></SelectContent>
+                <SelectContent>
+                  <SelectItem value="3 days">3 Days</SelectItem>
+                  <SelectItem value="5 days">5 Days</SelectItem>
+                  <SelectItem value="1 week">1 Week</SelectItem>
+                  <SelectItem value="2 weeks">2 Weeks</SelectItem>
+                  <SelectItem value="1 month">1 Month</SelectItem>
+                  <SelectItem value="3 months">3 Months</SelectItem>
+                  <SelectItem value="6 months">6 Months</SelectItem>
+                  <SelectItem value="12 months">12 Months</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>

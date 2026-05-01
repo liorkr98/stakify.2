@@ -10,12 +10,17 @@ import RevenueInsightsPanel from "@/components/dashboard/RevenueInsightsPanel";
 import TwitsPanel from "@/components/dashboard/TwitsPanel";
 import { useNavigate, Link } from "react-router-dom";
 
-const STAT_CARDS = [
-  { key: "predictions", label: "Prediction Summary", value: "87.5%", icon: Target, color: "text-green-600", bg: "bg-green-50 border-green-200", sub: "+2.3% vs last quarter" },
-  { key: "points", label: "Total Points", value: "8,750", icon: Zap, color: "text-amber-600", bg: "bg-amber-50 border-amber-200", sub: "Top 3% of analysts" },
-  { key: "yield", label: "Yearly Yield", value: "+34.2%", icon: TrendingUp, color: "text-primary", bg: "bg-primary/5 border-primary/20", sub: "vs S&P 500: +12.1%" },
-  { key: "followers", label: "Followers", value: "12,400", icon: Users, color: "text-blue-600", bg: "bg-blue-50 border-blue-200", sub: "+340 this month" },
-];
+function computeStats(myReports) {
+  const pred = myReports.filter(r => r.prediction);
+  const total = pred.length;
+  const hit = pred.filter(r => r.prediction?.outcome === "hit").length;
+  const accuracy = total > 0 ? ((hit / total) * 100).toFixed(1) : "87.5";
+  // yield: average % gain from locked predictions that hit
+  const gains = pred.filter(r => r.prediction?.outcome === "hit" && r.prediction?.lockPrice && r.prediction?.targetPrice)
+    .map(r => ((r.prediction.targetPrice - r.prediction.lockPrice) / r.prediction.lockPrice) * 100);
+  const avgYield = gains.length > 0 ? (gains.reduce((a, b) => a + b, 0) / gains.length).toFixed(1) : "34.2";
+  return { accuracy, avgYield };
+}
 
 const ACTION_ICONS = { Long: ArrowUp, Short: ArrowDown, Hold: Minus };
 
@@ -39,8 +44,10 @@ export default function AnalystDashboard() {
   const navigate = useNavigate();
   const saved = (() => { try { return JSON.parse(localStorage.getItem("stakify_profile")) || {}; } catch { return {}; } })();
   const analyst = { ...MOCK_ANALYSTS[0], ...saved };
-  const myReports = MOCK_REPORTS.filter(r => r.author.id === analyst.id);
+  const myReports = MOCK_REPORTS.filter(r => r.author.id === analyst.id || r.author?.id === "a1");
+  const { accuracy, avgYield } = computeStats(myReports);
   const drafts = [{ id: "d1", title: "Amazon's Healthcare Pivot: Underappreciated Opportunity", updatedAt: "2026-04-14" }, { id: "d2", title: "Semiconductor Supply Chain Deep Dive", updatedAt: "2026-04-13" }];
+  const [profileBoosted, setProfileBoosted] = useState(false);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -62,7 +69,12 @@ export default function AnalystDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {STAT_CARDS.map(stat => {
+        {[
+          { key: "predictions", label: "Prediction Accuracy", value: `${accuracy}%`, icon: Target, color: "text-green-600", bg: "bg-green-50 border-green-200", sub: `Based on ${myReports.filter(r=>r.prediction).length} predictions` },
+          { key: "points", label: "Total Points", value: "8,750", icon: Zap, color: "text-amber-600", bg: "bg-amber-50 border-amber-200", sub: "Top 3% of analysts" },
+          { key: "yield", label: "Avg Prediction Yield", value: `+${avgYield}%`, icon: TrendingUp, color: "text-primary", bg: "bg-primary/5 border-primary/20", sub: "vs S&P 500: +12.1%" },
+          { key: "followers", label: "Followers", value: "12,400", icon: Users, color: "text-blue-600", bg: "bg-blue-50 border-blue-200", sub: "+340 this month" },
+        ].map(stat => {
           const Icon = stat.icon;
           return (
             <button key={stat.key} onClick={() => navigate(stat.key === "predictions" ? "/predictions" : `/analytics?category=${stat.key}`)} className={`rounded-xl border p-4 text-left hover:shadow-md transition-all ${stat.bg}`}>
@@ -101,6 +113,7 @@ export default function AnalystDashboard() {
                 <TabsTrigger value="published">Published ({myReports.length})</TabsTrigger>
                 <TabsTrigger value="drafts">Drafts ({drafts.length})</TabsTrigger>
                 <TabsTrigger value="boost">Boost</TabsTrigger>
+                <TabsTrigger value="profile-boost">Profile Boost</TabsTrigger>
                 <TabsTrigger value="subscriptions">Subscribed</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -145,6 +158,37 @@ export default function AnalystDashboard() {
                     )}
                   </div>
                 ))}
+              </div>
+            )}
+            {tab === "profile-boost" && (
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground">Boost your analyst profile to appear higher in the Leaderboard and gain more followers.</p>
+                {profileBoosted ? (
+                  <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-xl">
+                    <Rocket className="w-5 h-5 text-orange-500" />
+                    <div>
+                      <div className="font-semibold text-sm text-orange-700">Profile is Boosted 🔥</div>
+                      <div className="text-xs text-orange-600">Your profile is being promoted to new followers for 7 days.</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {[
+                      { label: "7 Day Boost", price: "$9.99", reach: "~2,000 impressions", icon: "🚀" },
+                      { label: "30 Day Boost", price: "$29.99", reach: "~10,000 impressions", icon: "🔥" },
+                      { label: "Featured Analyst", price: "$79.99", reach: "Homepage feature for 7 days", icon: "⭐" },
+                    ].map(plan => (
+                      <button key={plan.label} onClick={() => setProfileBoosted(true)} className="w-full flex items-center gap-4 p-4 border border-border rounded-xl hover:border-orange-300 hover:bg-orange-50/50 text-left transition-all">
+                        <span className="text-2xl">{plan.icon}</span>
+                        <div className="flex-1">
+                          <div className="font-semibold text-sm">{plan.label}</div>
+                          <div className="text-xs text-muted-foreground">{plan.reach}</div>
+                        </div>
+                        <span className="font-bold text-orange-600">{plan.price}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {tab === "subscriptions" && (

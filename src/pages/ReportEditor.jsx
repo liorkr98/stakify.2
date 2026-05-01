@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle, Rocket, PenLine } from "lucide-react";
+import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle, Rocket, PenLine, Send } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { publishReport } from "@/lib/mockData";
 import EditorBlock from "@/components/editor/EditorBlock";
 import ChartBlock from "@/components/editor/ChartBlock";
 import DrawableChartBlock from "@/components/editor/DrawableChartBlock";
@@ -18,11 +20,14 @@ import BoostPanel from "@/components/editor/BoostPanel";
 const DYOR_TEXT = "⚠️ Disclaimer: This report is for informational purposes only and does not constitute financial advice. Always do your own research (DYOR) before making any investment decisions.";
 
 export default function ReportEditor() {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [blocks, setBlocks] = useState([{ type: "text", content: "", id: 0 }]);
   const nextId = React.useRef(1);
   const [showAI, setShowAI] = useState(false);
   const [showPrediction, setShowPrediction] = useState(false);
+  const [predictionData, setPredictionData] = useState(null);
+  const [publishing, setPublishing] = useState(false);
 
   const handleBlockChange = useCallback((index, newBlock) => {
     setBlocks((prev) => prev.map((b, i) => (i === index ? newBlock : b)));
@@ -37,6 +42,17 @@ export default function ReportEditor() {
   }, []);
   const addBlock = (type) => setBlocks((prev) => [...prev, { type, content: "", id: nextId.current++ }]);
   const addDYOR = () => { setBlocks((prev) => [...prev, { type: "text", content: DYOR_TEXT, id: nextId.current++ }]); toast.success("DYOR disclaimer added"); };
+
+  const handlePublish = () => {
+    if (!title.trim()) { toast.error("Please add a title before publishing."); return; }
+    setPublishing(true);
+    const tickers = blocks.map(b => b.content?.match(/\$([A-Z]{2,5})/g) || []).flat().map(t => t.replace("$","")).filter((v,i,a) => a.indexOf(v) === i);
+    const excerpt = blocks.find(b => b.type === "text" && b.content?.trim())?.content?.slice(0, 200) || "";
+    const report = { title, content_blocks: blocks, tickers, excerpt, prediction: predictionData, industry: "AI & Semiconductors", marketCap: "large", isPremium: false };
+    publishReport(report);
+    toast.success("Report published! It's live on the feed.");
+    setTimeout(() => navigate("/"), 1200);
+  };
 
   const handleAIGenerate = (template) => {
     setBlocks(template.map((b) => ({ ...b, id: nextId.current++ })));
@@ -55,6 +71,7 @@ export default function ReportEditor() {
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={addDYOR} className="text-xs"><AlertTriangle className="w-3.5 h-3.5 mr-1" />DYOR</Button>
               <Button variant="outline" size="sm" onClick={() => setShowAI(true)} className="border-primary/30 text-primary hover:bg-primary/5"><Sparkles className="w-3.5 h-3.5 mr-1.5" />AI Assist</Button>
+              <Button size="sm" onClick={handlePublish} disabled={publishing} className="bg-primary"><Send className="w-3.5 h-3.5 mr-1.5" />{publishing ? "Publishing..." : "Publish"}</Button>
             </div>
           </div>
 
@@ -86,7 +103,7 @@ export default function ReportEditor() {
           </DropdownMenu>
 
           {showPrediction && (
-            <div className="mt-8"><PredictionBlock onPublish={(p) => toast.success(`Prediction locked: ${p.action} $${p.ticker}`)} /></div>
+            <div className="mt-8"><PredictionBlock onPublish={(p) => { setPredictionData(p); toast.success(`Prediction locked: ${p.action} $${p.ticker}`); }} /></div>
           )}
           <div className="mt-4 flex items-center gap-2">
             <button onClick={() => setShowPrediction(p => !p)} className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${showPrediction ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>

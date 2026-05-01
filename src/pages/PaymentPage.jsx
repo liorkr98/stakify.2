@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Lock, ArrowLeft, Star, CreditCard, Shield, Zap } from "lucide-react";
+import { Check, Lock, ArrowLeft, Star, CreditCard, Shield, Zap, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -16,6 +16,27 @@ function formatCard(val) {
 function formatExpiry(val) {
   const v = val.replace(/\D/g, "").slice(0, 4);
   return v.length >= 3 ? v.slice(0, 2) + "/" + v.slice(2) : v;
+}
+
+function NewsletterAddon({ enabled, onToggle }) {
+  return (
+    <button onClick={onToggle} className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 mb-4 text-left transition-all ${enabled ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}>
+      <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${enabled ? "bg-primary text-white" : "bg-secondary text-muted-foreground"}`}>
+        <Mail className="w-4 h-4" />
+      </div>
+      <div className="flex-1">
+        <div className="font-semibold text-sm flex items-center gap-2">
+          Newsletter Add-on
+          <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-semibold">Add-on</span>
+        </div>
+        <p className="text-xs text-muted-foreground">Get email alerts when your followed analysts publish new reports.</p>
+      </div>
+      <div className="text-right shrink-0">
+        <div className="font-bold text-primary">+$4.99<span className="text-xs font-normal text-muted-foreground">/mo</span></div>
+        <div className={`text-xs mt-0.5 ${enabled ? "text-primary font-semibold" : "text-muted-foreground"}`}>{enabled ? "✓ Added" : "Add"}</div>
+      </div>
+    </button>
+  );
 }
 
 function StripeCardForm({ amount, label, onSuccess }) {
@@ -93,6 +114,7 @@ export default function PaymentPage() {
   const reportPrice = parseFloat(urlParams.get("price") || "4.99");
   const analystName = urlParams.get("analyst") || "";
   const [selectedPlan, setSelectedPlan] = useState("pro");
+  const [newsletterAddon, setNewsletterAddon] = useState(false);
   const [paid, setPaid] = useState(false);
 
   const handleSuccess = () => {
@@ -160,7 +182,8 @@ export default function PaymentPage() {
               </button>
             ))}
           </div>
-          <StripeCardForm amount={currentPlan?.price} label={`${currentPlan?.label} Plan/mo`} onSuccess={handleSuccess} />
+          <NewsletterAddon enabled={newsletterAddon} onToggle={() => setNewsletterAddon(v => !v)} />
+          <StripeCardForm amount={(currentPlan?.price || 0) + (newsletterAddon ? 4.99 : 0)} label={`${currentPlan?.label} Plan/mo`} onSuccess={handleSuccess} />
         </div>
       ) : (
         <div>
@@ -186,7 +209,8 @@ export default function PaymentPage() {
               </button>
             ))}
           </div>
-          <StripeCardForm amount={currentPlan?.price} label={`${currentPlan?.label} Plan/mo`} onSuccess={handleSuccess} />
+          <NewsletterAddon enabled={newsletterAddon} onToggle={() => setNewsletterAddon(v => !v)} />
+          <StripeCardForm amount={(currentPlan?.price || 0) + (newsletterAddon ? 4.99 : 0)} label={`${currentPlan?.label} Plan/mo`} onSuccess={handleSuccess} />
         </div>
       )}
     </div>
