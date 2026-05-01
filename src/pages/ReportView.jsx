@@ -71,8 +71,8 @@ export default function ReportView() {
               <h3 className="font-bold text-lg mb-1">This is a Premium Report</h3>
               <p className="text-sm text-muted-foreground mb-4">Unlock the full analysis, DCF model, and detailed catalysts.</p>
               <div className="flex gap-2 justify-center flex-wrap">
-                <Button onClick={() => navigate(`/pay?mode=report&id=${report.id}&title=${encodeURIComponent(report.title)}&price=4.99`)} className="bg-amber-500 hover:bg-amber-600 text-white">Unlock for $4.99</Button>
-                <Button variant="outline" onClick={() => navigate("/pay?mode=subscription")} className="border-primary/30 text-primary">Subscribe $9/mo</Button>
+                <Button onClick={() => navigate(`/pay?mode=report&id=${report.id}&title=${encodeURIComponent(report.title)}&price=${report.price || 4.99}&analyst=${encodeURIComponent(report.author.name)}`)} className="bg-amber-500 hover:bg-amber-600 text-white">Unlock for ${report.price || 4.99}</Button>
+                <Button variant="outline" onClick={() => navigate(`/pay?mode=analyst&analyst=${encodeURIComponent(report.author.name)}`)} className="border-primary/30 text-primary">Subscribe from $9/mo</Button>
               </div>
             </div>
           </>

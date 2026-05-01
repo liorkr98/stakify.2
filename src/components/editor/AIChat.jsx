@@ -23,8 +23,9 @@ export default function AIChat({ reportContent, onInsertBlock }) {
     setLoading(true);
 
     const res = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are an AI assistant helping a financial analyst write a research report. Current report context: "${reportContent?.slice(0, 500) || "New report"}"\n\nUser question: "${userMsg}"\n\nBe concise (3-5 sentences). If the user asks you to "write", "draft", or "add" something, end your response with: [INSERT: <the paragraph to insert>]`,
+      prompt: `You are an expert financial research analyst AI assistant helping write professional research reports. Current report context: "${reportContent?.slice(0, 500) || "New report"}"\n\nUser question: "${userMsg}"\n\nBe concise, insightful, and data-driven (3-5 sentences). Use financial terminology appropriately. If the user asks you to "write", "draft", or "add" something, end your response with: [INSERT: <the paragraph to insert>]`,
       add_context_from_internet: userMsg.toLowerCase().includes("price") || userMsg.toLowerCase().includes("news") || userMsg.toLowerCase().includes("latest"),
+      model: "claude_sonnet_4_6",
     });
 
     const text = typeof res === "string" ? res : JSON.stringify(res);
@@ -54,7 +55,10 @@ export default function AIChat({ reportContent, onInsertBlock }) {
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-primary" />
-          <span className="font-semibold text-sm">AI Research Assistant</span>
+          <div>
+            <span className="font-semibold text-sm">AI Research Assistant</span>
+            <div className="text-[10px] text-muted-foreground">Powered by Claude Sonnet</div>
+          </div>
         </div>
         <button onClick={() => setOpen(false)}><X className="w-4 h-4 text-muted-foreground" /></button>
       </div>

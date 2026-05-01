@@ -1,13 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, TrendingUp, TrendingDown, Newspaper, ExternalLink } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
+import { ArrowLeft, TrendingUp, TrendingDown, ExternalLink } from "lucide-react";
+import { XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import { MOCK_STOCKS, MOCK_REPORTS, generateCandlestickData } from "@/lib/mockData";
+import { MOCK_STOCKS, MOCK_REPORTS } from "@/lib/mockData";
+import TradingViewWidget from "@/components/feed/TradingViewWidget";
 
 const TABS = ["Chart", "Financials", "News", "Reports"];
-const RANGES = ["1W", "1M", "3M", "6M", "1Y"];
-const rangeDays = { "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365 };
 
 const FUNDAMENTALS = {
   NVDA: { pe: 42.3, eps: 11.93, marketCap: "2.3T", divYield: "0.03%", beta: 1.72, week52High: 974, week52Low: 402, revenue: "60.9B", revenueGrowth: "+122%", grossMargin: "75.1%", operatingMargin: "54.1%", netIncome: "29.7B", freeCashFlow: "27.0B" },
@@ -41,19 +40,6 @@ function generateNews(ticker) {
   return items;
 }
 
-function buildPriceHistory(basePrice, days) {
-  const data = [];
-  let price = basePrice * 0.75;
-  const now = new Date();
-  for (let i = days; i >= 0; i--) {
-    price = Math.max(price * (1 + (Math.random() - 0.47) * 0.025), basePrice * 0.5);
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    data.push({ date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), price: parseFloat(price.toFixed(2)) });
-  }
-  data[data.length - 1].price = basePrice;
-  return data;
-}
 
 export default function StockPage() {
   const navigate = useNavigate();
@@ -61,11 +47,8 @@ export default function StockPage() {
   const ticker = urlParams.get("ticker")?.toUpperCase() || "NVDA";
   const stockData = MOCK_STOCKS[ticker];
   const [activeTab, setActiveTab] = useState("Chart");
-  const [range, setRange] = useState("3M");
-  const priceHistory = useMemo(() => buildPriceHistory(stockData?.price || 500, rangeDays[range]), [ticker, range]);
   const relatedReports = MOCK_REPORTS.filter(r => r.tickers?.includes(ticker));
   const isUp = stockData?.changePercent >= 0;
-  const chartColor = isUp ? "hsl(152,55%,36%)" : "hsl(0,72%,52%)";
   const fundamentals = FUNDAMENTALS[ticker] || FUNDAMENTALS.NVDA;
   const quarterlyRev = QUARTERLY_REVENUE[ticker] || QUARTERLY_REVENUE.NVDA;
   const news = generateNews(ticker);
@@ -103,20 +86,8 @@ export default function StockPage() {
       </div>
 
       {activeTab === "Chart" && (
-        <div className="bg-card border border-border rounded-xl p-5">
-          <div className="flex gap-1 mb-4">
-            {RANGES.map(r => <button key={r} onClick={() => setRange(r)} className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${range === r ? "bg-primary text-white" : "text-muted-foreground hover:bg-secondary"}`}>{r}</button>)}
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={priceHistory}>
-              <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={chartColor} stopOpacity={0.2} /><stop offset="95%" stopColor={chartColor} stopOpacity={0} /></linearGradient></defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,20%,92%)" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={Math.floor(priceHistory.length / 6)} />
-              <YAxis tick={{ fontSize: 10 }} width={60} tickFormatter={v => `$${v}`} />
-              <Tooltip formatter={v => [`$${v}`, "Price"]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-              <Area type="monotone" dataKey="price" stroke={chartColor} strokeWidth={2} fill="url(#cg)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="bg-card border border-border rounded-xl overflow-hidden">
+          <TradingViewWidget ticker={ticker} height={450} />
         </div>
       )}
 

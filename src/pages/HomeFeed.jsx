@@ -8,15 +8,18 @@ import { Link } from "react-router-dom";
 import { TrendingUp } from "lucide-react";
 
 const SECTORS = ["All", "AI & Semiconductors", "Big Tech", "EV & Clean Energy", "Financials", "Crypto & Web3", "Consumer Tech", "E-Commerce", "Healthcare"];
+const MARKET_CAPS = ["All", "Mega", "Large", "Mid", "Small", "Micro"];
 const SORT_OPTIONS = ["Latest", "Most Liked", "Premium Only", "Free Only"];
 
 export default function HomeFeed() {
   const [activeSector, setActiveSector] = useState("All");
+  const [activeMarketCap, setActiveMarketCap] = useState("All");
   const [sortBy, setSortBy] = useState("Latest");
   const reports = getReports();
 
   const filtered = reports
     .filter(r => activeSector === "All" || r.industry === activeSector)
+    .filter(r => activeMarketCap === "All" || (r.marketCap || "").toLowerCase() === activeMarketCap.toLowerCase())
     .filter(r => sortBy === "Premium Only" ? r.isPremium : sortBy === "Free Only" ? !r.isPremium : true)
     .sort((a, b) => sortBy === "Most Liked" ? b.likes - a.likes : new Date(b.publishedAt) - new Date(a.publishedAt));
 
@@ -26,10 +29,20 @@ export default function HomeFeed() {
         {/* Main Feed */}
         <div className="flex-1 min-w-0">
           {/* Sector filter bar */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide">
             {SECTORS.map(sector => (
               <button key={sector} onClick={() => setActiveSector(sector)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${activeSector === sector ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>
                 {sector}
+              </button>
+            ))}
+          </div>
+
+          {/* Market cap filter bar */}
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+            <span className="shrink-0 text-xs text-muted-foreground self-center font-medium mr-1">Market Cap:</span>
+            {MARKET_CAPS.map(cap => (
+              <button key={cap} onClick={() => setActiveMarketCap(cap)} className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${activeMarketCap === cap ? "bg-secondary text-foreground border-foreground/30" : "border-border text-muted-foreground hover:border-primary/40"}`}>
+                {cap}
               </button>
             ))}
           </div>
