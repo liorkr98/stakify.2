@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus, MessageCircle, BarChart3, FileText, Star, Target, Award, Users, Flame, Trophy, TrendingUp, Eye, DollarSign } from "lucide-react";
+import { ArrowLeft, UserPlus, MessageCircle, BarChart3, FileText, Star, Target, Award, Users, Flame, Trophy, TrendingUp, Eye, DollarSign, Twitter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MOCK_ANALYSTS, MOCK_REPORTS } from "@/lib/mockData";
 import ReportCard from "@/components/feed/ReportCard";
 import AccuracyBreakdown from "@/components/analyst/AccuracyBreakdown";
+import { getTwits } from "@/lib/twitsStore";
 
 const ACHIEVEMENTS = [
   { label: "First Report", icon: FileText, earned: true }, { label: "10 Predictions", icon: Target, earned: true },
@@ -14,10 +15,12 @@ const ACHIEVEMENTS = [
   { label: "Streak x3", icon: Flame, earned: true }, { label: "Top 10", icon: Trophy, earned: false },
 ];
 
-const SUB_PLANS = [
-  { id: "basic", label: "Basic", price: 9, features: ["All full reports", "Prediction outcomes", "Comment access"], dm: false },
-  { id: "pro", label: "Pro + DM", price: 19, features: ["Everything in Basic", "Direct message analyst", "Live Q&A access", "Early report access"], dm: true },
-];
+function getSubPlans(saved) {
+  return [
+    { id: "basic", label: "Basic", price: parseFloat(saved?.basicPrice || 9), features: ["All full reports", "Prediction outcomes", "Comment access"], dm: false },
+    { id: "pro", label: "Pro + DM", price: parseFloat(saved?.proPrice || 19), features: ["Everything in Basic", "Direct message analyst", "Live Q&A access", "Early report access"], dm: true },
+  ];
+}
 
 export default function AnalystProfilePage() {
   const navigate = useNavigate();
@@ -30,6 +33,11 @@ export default function AnalystProfilePage() {
   const [following, setFollowing] = useState(false);
   const [subscriptionPlan, setSubscriptionPlan] = useState(null);
   const [showSubModal, setShowSubModal] = useState(false);
+  const twits = analystId === "a1" ? getTwits() : [
+    { id: 1, content: `Watching $${analyst.specialties?.[0]?.split(" ")[0] || "NVDA"} closely. Strong momentum into earnings. 📈`, time: "3h ago" },
+    { id: 2, content: "Market breadth improving — risk-on sentiment building. Adding exposure selectively.", time: "1d ago" },
+  ];
+  const SUB_PLANS = getSubPlans(analystId === "a1" ? saved : {});
 
   const handleSubscribe = (plan) => {
     setSubscriptionPlan(plan);
@@ -123,6 +131,29 @@ export default function AnalystProfilePage() {
         </div>
       </div>
 
+      {/* Twits */}
+      {twits.length > 0 && (
+        <div className="bg-card border border-border rounded-xl p-5 mb-6">
+          <h2 className="font-bold mb-3 flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-primary" />Quick Twits
+          </h2>
+          <div className="space-y-3">
+            {twits.slice(0, 5).map(t => (
+              <div key={t.id} className="flex gap-2.5 p-3 bg-secondary/50 rounded-lg">
+                <img src={analyst.avatar} alt="" className="w-7 h-7 rounded-full flex-shrink-0 object-cover" />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-xs font-semibold">{analyst.name}</span>
+                    <span className="text-xs text-muted-foreground">{t.time}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed">{t.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <h2 className="font-bold mb-4">Published Reports</h2>
       {myReports.length === 0 ? <p className="text-sm text-muted-foreground">No reports yet.</p> : <div className="space-y-3">{myReports.map(r => <ReportCard key={r.id} report={r} />)}</div>}
 
@@ -137,7 +168,7 @@ export default function AnalystProfilePage() {
                 <button key={plan.id} onClick={() => handleSubscribe(plan)} className="w-full text-left border border-border rounded-xl p-4 hover:border-primary/40 transition-all">
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold">{plan.label}</span>
-                    <span className="font-bold text-primary">${plan.price}<span className="text-xs font-normal text-muted-foreground">/mo</span></span>
+                    <span className="font-bold text-primary">${plan.price.toFixed(2)}<span className="text-xs font-normal text-muted-foreground">/mo</span></span>
                   </div>
                   <ul className="space-y-0.5">
                     {plan.features.map(f => <li key={f} className="text-xs text-muted-foreground flex items-center gap-1.5">✓ {f}</li>)}

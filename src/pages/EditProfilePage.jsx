@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Save, Loader2, DollarSign } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,10 @@ import { MOCK_ANALYSTS } from "@/lib/mockData";
 
 const SPECIALTY_OPTIONS = ["AI & Semiconductors", "Big Tech", "EV & Clean Energy", "Macro", "Consumer Tech", "Financials", "Crypto & Web3", "Healthcare", "E-Commerce", "Options Flow"];
 const PROFILE_KEY = "stakify_profile";
+
+// subscription pricing defaults
+const DEFAULT_BASIC_PRICE = "9";
+const DEFAULT_PRO_PRICE = "19";
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
@@ -25,6 +29,8 @@ export default function EditProfilePage() {
   const [website, setWebsite] = useState(saved.website || "");
   const [tagline, setTagline] = useState(saved.tagline || "Senior Equity Research Analyst · Tech & AI Specialist");
   const [selectedSpecialties, setSelectedSpecialties] = useState(saved.specialties || analyst.specialties || []);
+  const [basicPrice, setBasicPrice] = useState(saved.basicPrice || DEFAULT_BASIC_PRICE);
+  const [proPrice, setProPrice] = useState(saved.proPrice || DEFAULT_PRO_PRICE);
   const fileInputRef = React.useRef(null);
 
   const toggleSpecialty = (s) => setSelectedSpecialties((prev) => prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]);
@@ -40,7 +46,7 @@ export default function EditProfilePage() {
   };
 
   const handleSave = () => {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, bio, avatar, twitter, linkedin, website, tagline, specialties: selectedSpecialties }));
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ name, bio, avatar, twitter, linkedin, website, tagline, specialties: selectedSpecialties, basicPrice, proPrice }));
     toast.success("Profile saved!");
     navigate("/dashboard");
   };
@@ -96,6 +102,30 @@ export default function EditProfilePage() {
             {SPECIALTY_OPTIONS.map((s) => (
               <button key={s} onClick={() => toggleSpecialty(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedSpecialties.includes(s) ? "bg-primary text-white border-primary" : "border-border text-muted-foreground hover:border-primary/40"}`}>{s}</button>
             ))}
+          </div>
+        </div>
+
+        {/* Subscription Pricing */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <h3 className="font-semibold mb-1 flex items-center gap-2"><DollarSign className="w-4 h-4 text-primary" />Subscription Pricing</h3>
+          <p className="text-xs text-muted-foreground mb-4">Set your monthly subscription prices. Stakify takes 15%.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium mb-1 block">Basic Plan ($/mo)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                <Input value={basicPrice} onChange={e => setBasicPrice(e.target.value)} className="pl-6" type="number" min="1" placeholder="9" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">You keep ${(parseFloat(basicPrice || 0) * 0.85).toFixed(2)}</p>
+            </div>
+            <div>
+              <label className="text-xs font-medium mb-1 block">Pro + DM Plan ($/mo)</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                <Input value={proPrice} onChange={e => setProPrice(e.target.value)} className="pl-6" type="number" min="1" placeholder="19" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">You keep ${(parseFloat(proPrice || 0) * 0.85).toFixed(2)}</p>
+            </div>
           </div>
         </div>
       </div>

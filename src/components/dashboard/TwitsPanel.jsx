@@ -3,20 +3,17 @@ import { Send, MessageCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { MOCK_ANALYSTS } from "@/lib/mockData";
-
-const INITIAL_TWITS = [
-  { id: 1, content: "Watching NVDA open. This AI infrastructure cycle has legs — don't fight the tape. 🟢", time: "2h ago" },
-  { id: 2, content: "Fed commentary was more hawkish than expected. Rotating out of rate-sensitive names. Staying long quality tech.", time: "1d ago" },
-];
+import { getTwits, saveTwit } from "@/lib/twitsStore";
 
 export default function TwitsPanel() {
   const analyst = MOCK_ANALYSTS[0];
   const [tweet, setTweet] = useState("");
-  const [twits, setTwits] = useState(INITIAL_TWITS);
+  const [twits, setTwits] = useState(() => getTwits());
 
   const post = () => {
     if (!tweet.trim()) return;
-    setTwits(prev => [{ id: Date.now(), content: tweet.trim(), time: "just now" }, ...prev]);
+    const updated = saveTwit(tweet.trim());
+    setTwits(updated);
     setTweet("");
   };
 

@@ -22,6 +22,7 @@ export default function ReportEditor() {
   const [blocks, setBlocks] = useState([{ type: "text", content: "", id: 0 }]);
   const nextId = React.useRef(1);
   const [showAI, setShowAI] = useState(false);
+  const [showPrediction, setShowPrediction] = useState(false);
 
   const handleBlockChange = useCallback((index, newBlock) => {
     setBlocks((prev) => prev.map((b, i) => (i === index ? newBlock : b)));
@@ -84,7 +85,15 @@ export default function ReportEditor() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="mt-8"><PredictionBlock onPublish={(p) => toast.success(`Prediction locked: ${p.action} $${p.ticker}`)} /></div>
+          {showPrediction && (
+            <div className="mt-8"><PredictionBlock onPublish={(p) => toast.success(`Prediction locked: ${p.action} $${p.ticker}`)} /></div>
+          )}
+          <div className="mt-4 flex items-center gap-2">
+            <button onClick={() => setShowPrediction(p => !p)} className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${showPrediction ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
+              {showPrediction ? "✓ Prediction Block" : "+ Add Prediction"}
+            </button>
+            <span className="text-xs text-muted-foreground">Optional — skip for pure market analysis</span>
+          </div>
           <div className="mt-4"><FactChecker content={[title, ...blocks.map(b => b.content)].filter(Boolean).join("\n\n")} /></div>
         </div>
 
