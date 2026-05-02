@@ -1,9 +1,12 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { BarChart3, Home, PenLine } from "lucide-react";
+import { BarChart3, Home, PenLine, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import AppFooter from "./AppFooter";
 import SearchBar from "./SearchBar";
+import NotificationCenter from "./NotificationCenter";
+import { useAuth } from "@/lib/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { path: "/", label: "Feed", icon: Home },
@@ -13,6 +16,7 @@ const NAV_ITEMS = [
 
 export default function AppLayout() {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
@@ -32,6 +36,15 @@ export default function AppLayout() {
             })}
           </div>
           <div className="w-64 hidden lg:block"><SearchBar /></div>
+          <div className="flex items-center gap-2 shrink-0">
+            {isAuthenticated ? (
+              <NotificationCenter />
+            ) : (
+              <Link to="/sign-in">
+                <Button size="sm" className="gap-1.5"><LogIn className="w-4 h-4" />Sign In</Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border">

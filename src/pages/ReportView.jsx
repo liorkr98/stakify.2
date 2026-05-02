@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Lock } from "lucide-react";
+import { ArrowLeft, Heart, Lock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { MOCK_REPORTS } from "@/lib/mockData";
+import { MOCK_REPORTS, getReports } from "@/lib/mockData";
 import PredictionBadge from "@/components/feed/PredictionBadge";
 import TickerTag from "@/components/feed/TickerTag";
 import ShareMenu from "@/components/feed/ShareMenu";
@@ -26,7 +26,8 @@ export default function ReportView() {
   const urlParams = new URLSearchParams(window.location.search);
   const reportId = urlParams.get("id") || "r1";
   const isPaid = urlParams.get("paid") === "true";
-  const report = MOCK_REPORTS.find((r) => r.id === reportId) || MOCK_REPORTS[0];
+  const allReports = getReports();
+  const report = allReports.find((r) => r.id === reportId) || allReports[0];
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(report.likes);
 
@@ -58,6 +59,26 @@ export default function ReportView() {
       </div>
 
       <div className="mb-6"><PredictionBadge prediction={report.prediction} /></div>
+
+      {report.prediction?.outcome && (
+        <div className={`mb-6 rounded-xl border p-4 ${report.prediction.outcome === "hit" ? "bg-gain/10 border-gain/20" : "bg-loss/10 border-loss/20"}`}>
+          <div className="flex items-center gap-2 mb-2">
+            {report.prediction.outcome === "hit"
+              ? <CheckCircle2 className="w-5 h-5 text-gain flex-shrink-0" />
+              : <XCircle className="w-5 h-5 text-loss flex-shrink-0" />}
+            <span className={`font-bold text-sm ${report.prediction.outcome === "hit" ? "text-gain" : "text-loss"}`}>
+              {report.prediction.outcome === "hit" ? "Prediction Hit ✓" : "Prediction Missed ✗"}
+            </span>
+          </div>
+          <p className="text-sm font-semibold mb-1">{report.prediction.outcomeNote}</p>
+          {report.prediction.outcome === "miss" && (
+            <div className="mt-2 text-xs text-muted-foreground bg-card/80 rounded-lg p-3 border border-border/50">
+              <span className="font-semibold text-foreground flex items-center gap-1 mb-1"><AlertTriangle className="w-3.5 h-3.5 text-amber-500" />Why it missed:</span>
+              <p>The prediction did not reach the target within the specified timeframe. Market conditions, macro headwinds, or unexpected events may have impacted the outcome. Always evaluate predictions in the context of prevailing market dynamics.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="prose prose-sm max-w-none mb-8">
         {(!report.isPremium || isPaid) ? (

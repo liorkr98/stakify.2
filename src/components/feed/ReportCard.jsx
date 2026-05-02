@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Heart, MessageCircle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Heart, MessageCircle, TrendingUp, TrendingDown, Minus, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,13 @@ export default function ReportCard({ report, compact = false }) {
         <div className={`sm:hidden flex items-center justify-between text-xs font-medium px-3 py-2 rounded-lg border mb-3 ${actionCfg.bg}`}>
           <span className={actionCfg.color}>{report.prediction.action} · ${report.prediction.ticker} → ${report.prediction.targetPrice}</span>
           <span className="text-muted-foreground">{report.prediction.timeframe}</span>
+        </div>
+      )}
+
+      {report.prediction?.outcome && (
+        <div className={`flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-lg border mb-3 ${report.prediction.outcome === "hit" ? "bg-gain/10 border-gain/20 text-gain" : "bg-loss/10 border-loss/20 text-loss"}`}>
+          {report.prediction.outcome === "hit" ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <XCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+          <span>{report.prediction.outcomeNote}</span>
         </div>
       )}
 

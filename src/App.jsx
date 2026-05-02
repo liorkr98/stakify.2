@@ -29,9 +29,10 @@ import TermsPage from '@/pages/TermsPage';
 import PrivacyPage from '@/pages/PrivacyPage';
 import CookiePolicyPage from '@/pages/CookiePolicyPage';
 import AccessibilityPage from '@/pages/AccessibilityPage';
+import SignIn from '@/pages/SignIn';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, isAuthenticated } = useAuth();
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -48,28 +49,32 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
+      <Route path="/sign-in" element={<SignIn />} />
       <Route element={<AppLayout />}>
+        {/* Public routes — visible to guests */}
         <Route path="/" element={<HomeFeed />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/report" element={<ReportView />} />
-        <Route path="/editor" element={<ReportEditor />} />
-        <Route path="/dashboard" element={<AnalystDashboard />} />
         <Route path="/analyst" element={<AnalystProfilePage />} />
         <Route path="/stock" element={<StockPage />} />
-        <Route path="/pay" element={<PaymentPage />} />
-        <Route path="/edit-profile" element={<EditProfilePage />} />
-        <Route path="/dm" element={<DMPage />} />
-        <Route path="/predictions" element={<PredictionSummaryPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/cookies" element={<CookiePolicyPage />} />
+        <Route path="/accessibility" element={<AccessibilityPage />} />
+
+        {/* Auth-required routes */}
+        <Route path="/editor" element={isAuthenticated ? <ReportEditor /> : <SignIn />} />
+        <Route path="/dashboard" element={isAuthenticated ? <AnalystDashboard /> : <SignIn />} />
+        <Route path="/pay" element={isAuthenticated ? <PaymentPage /> : <SignIn />} />
+        <Route path="/edit-profile" element={isAuthenticated ? <EditProfilePage /> : <SignIn />} />
+        <Route path="/dm" element={isAuthenticated ? <DMPage /> : <SignIn />} />
+        <Route path="/predictions" element={isAuthenticated ? <PredictionSummaryPage /> : <SignIn />} />
+        <Route path="/analytics" element={isAuthenticated ? <AnalyticsPage /> : <SignIn />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/newsroom" element={<NewsroomPage />} />
         <Route path="/calculations" element={<CalculationsPage />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/cookies" element={<CookiePolicyPage />} />
-        <Route path="/accessibility" element={<AccessibilityPage />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

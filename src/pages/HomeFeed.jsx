@@ -5,24 +5,40 @@ import Leaderboard from "@/components/feed/Leaderboard";
 import TrendingPanel from "@/components/feed/TrendingPanel";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { TrendingUp, SlidersHorizontal, X } from "lucide-react";
+import { TrendingUp, SlidersHorizontal, X, Flame, Clock, Tag, Eye } from "lucide-react";
+
+const FEED_TABS = [
+  { id: "latest", label: "Latest", icon: Clock },
+  { id: "trending", label: "Trending", icon: Flame },
+  { id: "free", label: "Free Only", icon: Tag },
+  { id: "most_viewed", label: "Most Viewed", icon: Eye },
+];
 
 const SECTORS = ["All", "AI & Semiconductors", "Big Tech", "EV & Clean Energy", "Financials", "Crypto & Web3", "Consumer Tech", "E-Commerce", "Healthcare"];
 const MARKET_CAPS = ["All", "Mega", "Large", "Mid", "Small", "Micro"];
 const SORT_OPTIONS = ["Latest", "Most Liked", "Premium Only", "Free Only"];
 
 export default function HomeFeed() {
+  const [activeTab, setActiveTab] = useState("latest");
   const [activeSector, setActiveSector] = useState("All");
   const [activeMarketCap, setActiveMarketCap] = useState("All");
   const [sortBy, setSortBy] = useState("Latest");
   const [showFilters, setShowFilters] = useState(false);
   const reports = getReports();
 
-  const filtered = reports
+  const tabFiltered = reports
+    .filter(r => activeTab === "free" ? !r.isPremium : true)
+    .sort((a, b) => {
+      if (activeTab === "trending") return (b.likes * 2 + (b.completed ? 1 : 0)) - (a.likes * 2 + (a.completed ? 1 : 0));
+      if (activeTab === "most_viewed") return b.likes - a.likes;
+      return new Date(b.publishedAt) - new Date(a.publishedAt);
+    });
+
+  const filtered = tabFiltered
     .filter(r => activeSector === "All" || r.industry === activeSector)
     .filter(r => activeMarketCap === "All" || (r.marketCap || "").toLowerCase() === activeMarketCap.toLowerCase())
     .filter(r => sortBy === "Premium Only" ? r.isPremium : sortBy === "Free Only" ? !r.isPremium : true)
-    .sort((a, b) => sortBy === "Most Liked" ? b.likes - a.likes : new Date(b.publishedAt) - new Date(a.publishedAt));
+    .sort((a, b) => sortBy === "Most Liked" ? b.likes - a.likes : sortBy === "Latest" ? new Date(b.publishedAt) - new Date(a.publishedAt) : 0);
 
   const activeFilterCount = (activeSector !== "All" ? 1 : 0) + (activeMarketCap !== "All" ? 1 : 0) + (sortBy !== "Latest" ? 1 : 0);
 
@@ -31,6 +47,18 @@ export default function HomeFeed() {
       <div className="flex gap-6">
         {/* Main Feed */}
         <div className="flex-1 min-w-0">
+          {/* Feed tabs */}
+          <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
+            {FEED_TABS.map(tab => {
+              const Icon = tab.icon;
+              return (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all border ${activeTab === tab.id ? "bg-primary text-white border-primary shadow-sm" : "bg-card border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}>
+                  <Icon className="w-3.5 h-3.5" />{tab.label}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Controls bar */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm font-semibold text-muted-foreground">{filtered.length} Reports</span>
