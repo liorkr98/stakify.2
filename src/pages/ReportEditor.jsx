@@ -1,14 +1,13 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle, Rocket, PenLine, Send, Save, FolderOpen, Trash2 } from "lucide-react";
+import { Sparkles, Plus, Type, List, BarChart3, Image, Quote, AlertTriangle, Send, Save, FolderOpen, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { publishReport } from "@/lib/mockData";
 import EditorBlock from "@/components/editor/EditorBlock";
-import ChartBlock from "@/components/editor/ChartBlock";
-import DrawableChartBlock from "@/components/editor/DrawableChartBlock";
+import StockChartBlock from "@/components/editor/StockChartBlock";
 import ImageBlock from "@/components/editor/ImageBlock";
 import PredictionBlock from "@/components/editor/PredictionBlock";
 import AISidebar from "@/components/editor/AISidebar";
@@ -130,8 +129,7 @@ export default function ReportEditor() {
 
           <div className="space-y-1 mb-6">
             {blocks.map((block, index) =>
-              block.type === "chart" ? <ChartBlock key={block.id} /> :
-              block.type === "drawchart" ? <DrawableChartBlock key={block.id} /> :
+              block.type === "stockchart" ? <StockChartBlock key={block.id} onDelete={() => handleBlockDelete(index)} /> :
               block.type === "image" ? <ImageBlock key={block.id} block={block} onDelete={() => handleBlockDelete(index)} /> :
               <EditorBlock key={block.id} block={block} index={index} onChange={handleBlockChange} onDelete={handleBlockDelete} onKeyDown={handleBlockKeyDown} />
             )}
@@ -147,8 +145,7 @@ export default function ReportEditor() {
               <DropdownMenuItem onClick={() => addBlock("bullets")}><List className="w-4 h-4 mr-2" />Bullet List</DropdownMenuItem>
               <DropdownMenuItem onClick={() => addBlock("quote")}><Quote className="w-4 h-4 mr-2" />Quote</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => addBlock("chart")}><BarChart3 className="w-4 h-4 mr-2" />Stock Chart</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => addBlock("drawchart")}><PenLine className="w-4 h-4 mr-2" />Chart + Draw</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => addBlock("stockchart")}><BarChart3 className="w-4 h-4 mr-2" />Stock Chart</DropdownMenuItem>
               <DropdownMenuItem onClick={() => addBlock("image")}><Image className="w-4 h-4 mr-2" />Image</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -173,7 +170,7 @@ export default function ReportEditor() {
             <p>• Use $TICKER notation to reference stocks</p>
             <p>• Add a DYOR disclaimer before publishing</p>
             <p>• Lock a prediction to build credibility</p>
-            <p>• Draw on Chart+Draw blocks to annotate</p>
+            <p>• Add Stock Chart blocks with real Yahoo Finance data</p>
             <p>• Chat with the AI assistant for research help</p>
           </div>
         </aside>
