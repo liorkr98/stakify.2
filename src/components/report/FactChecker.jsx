@@ -84,7 +84,10 @@ function AIErrorReport({ claim }) {
 }
 
 export default function FactChecker({ content }) {
-  const [results, setResults] = useState(null);
+  const cacheKey = `factcheck_${btoa(content?.slice(0, 200) || "").slice(0, 40)}`;
+  const cached = (() => { try { const v = localStorage.getItem(cacheKey); return v ? JSON.parse(v) : null; } catch { return null; } })();
+
+  const [results, setResults] = useState(cached);
   const [loading, setLoading] = useState(false);
 
   const runCheck = async () => {
@@ -109,8 +112,11 @@ export default function FactChecker({ content }) {
           }
         }
       },
+      model: "claude_sonnet_4_6",
     });
-    setResults(res.claims || []);
+    const claims = res.claims || [];
+    setResults(claims);
+    try { localStorage.setItem(cacheKey, JSON.stringify(claims)); } catch {}
     setLoading(false);
   };
 

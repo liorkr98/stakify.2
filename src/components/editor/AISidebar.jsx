@@ -26,6 +26,7 @@ export default function AISidebar({ isOpen, onClose, onGenerate }) {
         const res = await base44.integrations.Core.InvokeLLM({
           prompt: `You are a professional financial analyst. Write a structured research report template about: "${topic}". Return a JSON array of blocks. Each block has "type" (heading/text/bullets) and "content" (string). Include: Executive Summary, Market Analysis, Key Catalysts, Risks, Valuation & Price Target, Summary & Recommendation.`,
           response_json_schema: { type: "object", properties: { blocks: { type: "array", items: { type: "object", properties: { type: { type: "string" }, content: { type: "string" } } } } } },
+          model: "claude_sonnet_4_6",
         });
         onGenerate(res.blocks || SKELETON_TEMPLATE);
       } else {
