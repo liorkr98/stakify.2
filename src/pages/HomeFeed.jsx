@@ -153,7 +153,7 @@ export default function HomeFeed() {
         {/* Right Sidebar */}
         <aside className="hidden lg:block w-72 shrink-0 space-y-4">
           <div className="bg-card border border-border rounded-xl p-5">
-            <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />Stakify</h3>
+            <h3 className="font-bold text-sm mb-2 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" />STOA</h3>
             <p className="text-xs text-muted-foreground mb-3 leading-relaxed">Transparent financial research with verified, publicly locked predictions.</p>
             <Link to="/editor"><Button className="w-full" size="sm">Write a Report</Button></Link>
           </div>

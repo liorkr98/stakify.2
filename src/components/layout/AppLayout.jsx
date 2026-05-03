@@ -7,6 +7,7 @@ import SearchBar from "./SearchBar";
 import NotificationCenter from "./NotificationCenter";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
+import StoaLogo from "@/components/StoaLogo";
 
 const NAV_ITEMS = [
   { path: "/", label: "Feed", icon: Home },
@@ -21,8 +22,8 @@ export default function AppLayout() {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 h-14 gap-4">
-          <Link to="/" className="flex items-center font-bold text-lg text-foreground shrink-0">
-            <span className="text-primary">S</span>takify
+          <Link to="/" className="flex items-center shrink-0">
+            <StoaLogo size={22} textSize="text-base" />
           </Link>
           <div className="hidden md:flex items-center gap-1">
             {NAV_ITEMS.map((item) => {

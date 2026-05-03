@@ -28,7 +28,7 @@ export default function ReportEditor() {
   const [showPrediction, setShowPrediction] = useState(false);
   const [predictionData, setPredictionData] = useState(null);
   const [publishing, setPublishing] = useState(false);
-  const [drafts, setDrafts] = useState(() => { try { return JSON.parse(localStorage.getItem("stakify_drafts")) || []; } catch { return []; } });
+  const [drafts, setDrafts] = useState(() => { try { return JSON.parse(localStorage.getItem("stoa_drafts")) || []; } catch { return []; } });
   const [showDrafts, setShowDrafts] = useState(false);
 
   const saveDraft = () => {
@@ -36,7 +36,7 @@ export default function ReportEditor() {
     const draft = { id: Date.now(), title: title || "Untitled Draft", blocks, predictionData, savedAt: new Date().toISOString() };
     const updated = [draft, ...drafts.slice(0, 9)];
     setDrafts(updated);
-    localStorage.setItem("stakify_drafts", JSON.stringify(updated));
+    localStorage.setItem("stoa_drafts", JSON.stringify(updated));
     toast.success("Draft saved!");
   };
 
@@ -51,7 +51,7 @@ export default function ReportEditor() {
   const deleteDraft = (id) => {
     const updated = drafts.filter(d => d.id !== id);
     setDrafts(updated);
-    localStorage.setItem("stakify_drafts", JSON.stringify(updated));
+    localStorage.setItem("stoa_drafts", JSON.stringify(updated));
   };
 
   const handleBlockChange = useCallback((index, newBlock) => {
